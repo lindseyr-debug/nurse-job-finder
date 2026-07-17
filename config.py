@@ -40,14 +40,13 @@ WORKDAY_EMPLOYERS = [
 ]
 
 # Hospitals/boards without a scrapable API -> generate direct search links instead.
+# Northwestern Medicine's robots.txt disallows crawling /search-jobs/, and
+# UChicago Medicine's robots.txt disallows crawling the entire site -- both
+# are respected here by only linking out, never fetching their data.
 QUICK_LINK_EMPLOYERS = [
     {
         "name": "Northwestern Medicine",
         "url_template": "https://jobs.nm.org/search-jobs/{query}",
-    },
-    {
-        "name": "Rush University Medical Center",
-        "url_template": "https://rush.fxrecruiter.com/?q={query}",
     },
     {
         "name": "UChicago Medicine",

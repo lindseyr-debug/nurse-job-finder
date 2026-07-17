@@ -11,7 +11,8 @@ from datetime import datetime
 from pathlib import Path
 
 import config
-from sources import quicklinks, workday
+import notifier
+from sources import quicklinks, rush, workday
 
 DATA_DIR = Path(__file__).parent / "data"
 OUTPUT_DIR = Path(__file__).parent / "output"
@@ -135,6 +136,10 @@ def main():
     print(f"Running job search at {run_time}...")
 
     jobs = workday.fetch_all(config.WORKDAY_EMPLOYERS, config.SEARCH_KEYWORDS, config.LOCATION_FILTERS)
+
+    print("  Fetching Rush University Medical Center sitemap...")
+    jobs += rush.fetch_jobs()
+
     jobs = dedupe_jobs(jobs)
     jobs = filter_and_score_jobs(jobs)
     print(f"Found {len(jobs)} matching nursing postings.")
@@ -148,6 +153,9 @@ def main():
 
     render_dashboard(jobs, quick_links, run_time)
     print(f"Dashboard written to {DASHBOARD_FILE}")
+
+    new_jobs = [j for j in jobs if j["is_new"]]
+    notifier.send_new_job_alert(new_jobs)
 
 
 if __name__ == "__main__":
