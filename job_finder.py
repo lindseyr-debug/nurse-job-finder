@@ -86,13 +86,17 @@ def render_dashboard(jobs, quick_links, run_time):
 
     job_rows = "\n".join(
         f"""
-        <tr class="{'new' if job['is_new'] else ''}">
+        <tr class="{'new' if job['is_new'] else ''}" data-job-url="{job['url']}">
             <td>{'🆕 ' if job['is_new'] else ''}{job['title']}</td>
             <td>{job['hospital']}</td>
             <td>{job['location']}</td>
             <td>{job['posted']}</td>
             <td>{'⭐' * job['relevance_score'] if job['relevance_score'] else ''}</td>
             <td><a href="{job['url']}" target="_blank">View &amp; Apply</a></td>
+            <td>
+                <button type="button" class="status-btn" data-status="applied">Mark Applied</button>
+                <button type="button" class="status-btn" data-status="not_interested">Not Interested</button>
+            </td>
         </tr>"""
         for job in jobs_sorted
     )
@@ -126,12 +130,17 @@ def render_dashboard(jobs, quick_links, run_time):
   <h1>Chicago Nursing Job Finder</h1>
   <div class="meta">Last updated: {run_time} &middot; {len(jobs)} live openings found ({new_count} new since last run)</div>
 
+  <p id="hidden-summary" style="display:none;">
+    <a href="#" id="show-hidden-link">Show hidden jobs</a> &middot;
+    <a href="#" id="clear-hidden-link">Clear all marks</a>
+  </p>
+
   <table>
     <thead>
-      <tr><th>Title</th><th>Hospital</th><th>Location</th><th>Posted</th><th>Match</th><th></th></tr>
+      <tr><th>Title</th><th>Hospital</th><th>Location</th><th>Posted</th><th>Match</th><th></th><th></th></tr>
     </thead>
     <tbody>
-      {job_rows if jobs else '<tr><td colspan="6">No live results from automated sources this run.</td></tr>'}
+      {job_rows if jobs else '<tr><td colspan="7">No live results from automated sources this run.</td></tr>'}
     </tbody>
   </table>
 
@@ -142,6 +151,65 @@ def render_dashboard(jobs, quick_links, run_time):
       {quick_link_rows}
     </ul>
   </div>
+
+  <script>
+    (function () {{
+      var STORAGE_KEY = 'jobStatuses'; // maps job url to 'applied' or 'not_interested'
+      var STATUS_LABELS = {{ applied: 'Applied', not_interested: 'Not interested' }};
+
+      function getStatuses() {{
+        try {{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{{}}'); }}
+        catch (e) {{ return {{}}; }}
+      }}
+      function saveStatuses(statuses) {{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses));
+      }}
+
+      var statuses = getStatuses();
+      var rows = document.querySelectorAll('tr[data-job-url]');
+      var showingHidden = false;
+
+      function refreshRows() {{
+        var hiddenCount = 0;
+        rows.forEach(function (row) {{
+          var status = statuses[row.getAttribute('data-job-url')];
+          if (status) hiddenCount++;
+          row.style.display = (status && !showingHidden) ? 'none' : '';
+          row.style.opacity = (status && showingHidden) ? '0.5' : '1';
+          row.title = status ? STATUS_LABELS[status] : '';
+        }});
+        document.getElementById('hidden-summary').style.display = hiddenCount > 0 ? 'block' : 'none';
+      }}
+
+      rows.forEach(function (row) {{
+        row.querySelectorAll('.status-btn').forEach(function (btn) {{
+          btn.addEventListener('click', function () {{
+            statuses[row.getAttribute('data-job-url')] = btn.getAttribute('data-status');
+            saveStatuses(statuses);
+            refreshRows();
+          }});
+        }});
+      }});
+
+      document.getElementById('show-hidden-link').addEventListener('click', function (e) {{
+        e.preventDefault();
+        showingHidden = !showingHidden;
+        this.textContent = showingHidden ? 'Hide those jobs again' : 'Show hidden jobs';
+        refreshRows();
+      }});
+
+      document.getElementById('clear-hidden-link').addEventListener('click', function (e) {{
+        e.preventDefault();
+        if (confirm('Clear all applied/not-interested marks? This brings back every hidden job.')) {{
+          statuses = {{}};
+          saveStatuses(statuses);
+          refreshRows();
+        }}
+      }});
+
+      refreshRows();
+    }})();
+  </script>
 </body>
 </html>
 """
