@@ -53,7 +53,10 @@ def filter_and_score_jobs(jobs):
             continue
         if any(term in title_lower for term in config.EXPERIENCED_LEVEL_TERMS):
             continue
-        if not any(term in location_lower for term in config.LOCATION_FILTERS):
+        is_chicago = any(term in location_lower for term in config.LOCATION_FILTERS) or any(
+            name in location_lower for name in config.CHICAGO_FACILITY_NAMES
+        )
+        if not is_chicago:
             continue
         if any(term in location_lower for term in config.EXCLUDED_LOCATIONS):
             continue
@@ -168,7 +171,7 @@ def main():
     run_time = datetime.now().strftime("%Y-%m-%d %I:%M %p")
     print(f"Running job search at {run_time}...")
 
-    jobs = workday.fetch_all(config.WORKDAY_EMPLOYERS, config.SEARCH_KEYWORDS, config.LOCATION_FILTERS)
+    jobs = workday.fetch_all(config.WORKDAY_EMPLOYERS, config.SEARCH_KEYWORDS)
 
     print("  Fetching Rush University Medical Center sitemap...")
     jobs += rush.fetch_jobs()

@@ -19,6 +19,15 @@ LOCATION_FILTERS = ["chicago"]
 # (substring match against the location text, case-insensitive).
 EXCLUDED_LOCATIONS = ["oak park"]
 
+# Some employers (e.g. Advocate Health via Workday) list single-location jobs
+# as just "<Facility Name> - <Street Address>", with no city/state text at
+# all -- so the literal "chicago" check in LOCATION_FILTERS misses real
+# Chicago facilities. These are the only Advocate Health facilities that are
+# actually within Chicago city limits (per advocatehealth.com); everything
+# else in their system (Lutheran General, Sherman, Christ Medical Center,
+# etc.) is a suburb and correctly stays excluded.
+CHICAGO_FACILITY_NAMES = ["illinois masonic", "advocate trinity"]
+
 # A job title must contain at least one of these to be considered a nursing role at all.
 NURSING_TITLE_TERMS = ["nurse", " rn ", "rn,", "rn-", "rn(", "(rn)"]
 
