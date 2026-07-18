@@ -18,7 +18,7 @@
 </head>
 <body>
   <h1>Chicago Nursing Job Finder</h1>
-  <div class="meta">Last updated: 2026-07-18 06:03 PM &middot; 21 live openings found (0 new since last run)</div>
+  <div class="meta">Last updated: 2026-07-18 06:05 PM &middot; 21 live openings found (0 new since last run)</div>
 
   <p id="hidden-summary" style="display:none;">
     <a href="#" id="show-hidden-link">Show hidden jobs</a> &middot;
@@ -366,6 +366,7 @@
           if (status) hiddenCount++;
           row.style.display = (status && !showingHidden) ? 'none' : '';
           row.style.opacity = (status && showingHidden) ? '0.5' : '1';
+          row.title = status ? STATUS_LABELS[status] : '';
         });
         document.getElementById('hidden-summary').style.display = hiddenCount > 0 ? 'block' : 'none';
       }
