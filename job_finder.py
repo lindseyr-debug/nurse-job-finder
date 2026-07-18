@@ -53,6 +53,8 @@ def filter_and_score_jobs(jobs):
             continue
         if any(term in title_lower for term in config.EXPERIENCED_LEVEL_TERMS):
             continue
+        if any(term in title_lower for term in config.PEDS_EXCLUDE_TERMS):
+            continue
         is_chicago = any(term in location_lower for term in config.LOCATION_FILTERS) or any(
             name in location_lower for name in config.CHICAGO_FACILITY_NAMES
         )

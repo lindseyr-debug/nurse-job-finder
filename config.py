@@ -47,6 +47,8 @@ EXPERIENCED_LEVEL_TERMS = [
 ]
 
 # Hospitals with a working Workday JSON search API -> fully automated results.
+# Ann & Robert H. Lurie Children's Hospital removed -- it's a pediatric
+# hospital and every posting there is a peds role, which isn't relevant.
 WORKDAY_EMPLOYERS = [
     {
         "name": "Advocate Health",
@@ -54,13 +56,10 @@ WORKDAY_EMPLOYERS = [
         "host": "wd5",
         "site": "External",
     },
-    {
-        "name": "Ann & Robert H. Lurie Children's Hospital",
-        "tenant": "luriechildrens",
-        "host": "wd1",
-        "site": "externalportal",
-    },
 ]
+
+# Exclude pediatric/peds roles from any employer (e.g. Rush's PICU/NICU units).
+PEDS_EXCLUDE_TERMS = ["pediatric", "peds", "picu", "nicu", "children's", "neonatal"]
 
 # Hospitals/boards without a scrapable API -> generate direct search links instead.
 # Northwestern Medicine's robots.txt disallows crawling /search-jobs/, and
