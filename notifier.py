@@ -32,14 +32,10 @@ def send_new_job_alert(new_jobs):
         print("  [notifier] Skipping text alert -- .env not configured. See .env.example.")
         return
 
-    top_jobs = sorted(new_jobs, key=lambda j: -j["relevance_score"])[:3]
-    lines = [f"{len(new_jobs)} new Chicago RN job(s) found:"]
-    for job in top_jobs:
-        lines.append(f"- {job['title']} ({job['hospital']})")
-    if len(new_jobs) > len(top_jobs):
-        lines.append(f"...and {len(new_jobs) - len(top_jobs)} more.")
-    lines.append(f"\nFull list: {config.DASHBOARD_URL}")
-    body = "\n".join(lines)
+    # Keep this short -- Verizon's email-to-SMS gateway silently truncates
+    # long messages instead of splitting them, so the link must come first
+    # and the whole thing must comfortably fit in one text.
+    body = f"{len(new_jobs)} new Chicago RN job(s): {config.DASHBOARD_URL}"
 
     message = MIMEText(body)
     message["From"] = gmail_address

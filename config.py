@@ -12,7 +12,12 @@ SEARCH_KEYWORDS = [
 ]
 
 # Only keep results whose location text contains one of these (case-insensitive).
-LOCATION_FILTERS = ["chicago", ", il", "illinois"]
+# Chicago proper only -- not the wider Illinois suburbs.
+LOCATION_FILTERS = ["chicago"]
+
+# Never show postings at these locations, even if they otherwise match
+# (substring match against the location text, case-insensitive).
+EXCLUDED_LOCATIONS = ["oak park"]
 
 # A job title must contain at least one of these to be considered a nursing role at all.
 NURSING_TITLE_TERMS = ["nurse", " rn ", "rn,", "rn-", "rn(", "(rn)"]
