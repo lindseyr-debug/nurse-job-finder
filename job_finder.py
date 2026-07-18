@@ -7,6 +7,7 @@ Or let the scheduled task run it daily -- see README.md for setup.
 """
 
 import json
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -14,10 +15,13 @@ import config
 import notifier
 from sources import quicklinks, rush, workday
 
-DATA_DIR = Path(__file__).parent / "data"
-OUTPUT_DIR = Path(__file__).parent / "output"
+PROJECT_DIR = Path(__file__).parent
+DATA_DIR = PROJECT_DIR / "data"
+OUTPUT_DIR = PROJECT_DIR / "output"
+DOCS_DIR = PROJECT_DIR / "docs"
 SEEN_JOBS_FILE = DATA_DIR / "seen_jobs.json"
 DASHBOARD_FILE = OUTPUT_DIR / "dashboard.html"
+PUBLISHED_FILE = DOCS_DIR / "index.html"
 
 
 def load_seen_jobs():
@@ -132,6 +136,26 @@ def render_dashboard(jobs, quick_links, run_time):
     OUTPUT_DIR.mkdir(exist_ok=True)
     DASHBOARD_FILE.write_text(html, encoding="utf-8")
 
+    DOCS_DIR.mkdir(exist_ok=True)
+    PUBLISHED_FILE.write_text(html, encoding="utf-8")
+
+
+def publish_to_github_pages(run_time):
+    """Commit and push docs/index.html so GitHub Pages serves the latest dashboard."""
+    try:
+        subprocess.run(["git", "add", "docs/index.html"], cwd=PROJECT_DIR, check=True, capture_output=True)
+        result = subprocess.run(
+            ["git", "commit", "-m", f"Update dashboard - {run_time}"],
+            cwd=PROJECT_DIR, capture_output=True, text=True,
+        )
+        if "nothing to commit" in result.stdout:
+            print("  [publish] No dashboard changes to publish.")
+            return
+        subprocess.run(["git", "push"], cwd=PROJECT_DIR, check=True, capture_output=True)
+        print("  [publish] Dashboard published to GitHub Pages.")
+    except subprocess.CalledProcessError as exc:
+        print(f"  [publish] Failed to publish dashboard: {exc.stderr}")
+
 
 def main():
     run_time = datetime.now().strftime("%Y-%m-%d %I:%M %p")
@@ -155,6 +179,8 @@ def main():
 
     render_dashboard(jobs, quick_links, run_time)
     print(f"Dashboard written to {DASHBOARD_FILE}")
+
+    publish_to_github_pages(run_time)
 
     new_jobs = [j for j in jobs if j["is_new"]]
     notifier.send_new_job_alert(new_jobs)

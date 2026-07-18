@@ -11,6 +11,8 @@ from email.mime.text import MIMEText
 
 from dotenv import load_dotenv
 
+import config
+
 load_dotenv()
 
 SMTP_HOST = "smtp.gmail.com"
@@ -35,7 +37,8 @@ def send_new_job_alert(new_jobs):
     for job in top_jobs:
         lines.append(f"- {job['title']} ({job['hospital']})")
     if len(new_jobs) > len(top_jobs):
-        lines.append(f"...and {len(new_jobs) - len(top_jobs)} more. See dashboard.html")
+        lines.append(f"...and {len(new_jobs) - len(top_jobs)} more.")
+    lines.append(f"\nFull list: {config.DASHBOARD_URL}")
     body = "\n".join(lines)
 
     message = MIMEText(body)
