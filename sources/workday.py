@@ -15,8 +15,17 @@ HEADERS = {
 }
 
 
-def fetch_jobs(employer, keyword, location_filters, limit=20):
-    """Return a list of normalized job dicts for one employer + keyword search."""
+def fetch_jobs(employer, keyword, limit=20):
+    """Return a list of normalized job dicts for one employer + keyword search.
+
+    Location filtering happens later (in job_finder.filter_and_score_jobs),
+    not here -- some employers (e.g. Advocate Health, now merged with Atrium
+    Health across multiple states) need every candidate to reach that more
+    complete check, since a plain city-name substring match here would
+    wrongly drop real Chicago facilities whose listing text is just
+    "<Facility Name> - <Street Address>" with no city in it at all.
+    Note: Workday's API rejects limit values above 20 with a 400 error.
+    """
     url = f"https://{employer['tenant']}.{employer['host']}.myworkdayjobs.com/wday/cxs/{employer['tenant']}/{employer['site']}/jobs"
     payload = {"appliedFacets": {}, "limit": limit, "offset": 0, "searchText": keyword}
 
@@ -31,16 +40,12 @@ def fetch_jobs(employer, keyword, location_filters, limit=20):
 
     jobs = []
     for posting in postings:
-        location_text = posting.get("locationsText", "")
-        if location_filters and not any(f in location_text.lower() for f in location_filters):
-            continue
-
         job_url = f"https://{employer['tenant']}.{employer['host']}.myworkdayjobs.com/en-US/{employer['site']}{posting['externalPath']}"
         jobs.append(
             {
                 "title": posting.get("title", "Untitled"),
                 "hospital": employer["name"],
-                "location": location_text,
+                "location": posting.get("locationsText", ""),
                 "posted": posting.get("postedOn", ""),
                 "url": job_url,
                 "matched_keyword": keyword,
@@ -50,11 +55,11 @@ def fetch_jobs(employer, keyword, location_filters, limit=20):
     return jobs
 
 
-def fetch_all(employers, keywords, location_filters):
+def fetch_all(employers, keywords):
     all_jobs = []
     for employer in employers:
         for keyword in keywords:
             print(f"  Searching {employer['name']} for '{keyword}'...")
-            all_jobs.extend(fetch_jobs(employer, keyword, location_filters))
+            all_jobs.extend(fetch_jobs(employer, keyword))
             time.sleep(1)  # be polite -- don't hammer their API
     return all_jobs
