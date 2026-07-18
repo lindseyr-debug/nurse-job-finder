@@ -23,6 +23,15 @@ SPECIALTY_TERMS = [
     "cardiology", "telemetry", "new grad", "residency", "graduate nurse",
 ]
 
+# Many hospitals (Rush included) use a clinical ladder: RN 1 / new grad,
+# RN 2+ requires prior experience. Exclude titles indicating an experience
+# level above entry, since Lindsey is a new grad.
+EXPERIENCED_LEVEL_TERMS = [
+    "registered nurse 2", "registered nurse 3", "registered nurse ii", "registered nurse iii",
+    "rn 2", "rn 3", "rn2", "rn3", "rn ii", "rn iii",
+    "experienced",
+]
+
 # Hospitals with a working Workday JSON search API -> fully automated results.
 WORKDAY_EMPLOYERS = [
     {
@@ -40,14 +49,13 @@ WORKDAY_EMPLOYERS = [
 ]
 
 # Hospitals/boards without a scrapable API -> generate direct search links instead.
+# Northwestern Medicine's robots.txt disallows crawling /search-jobs/, and
+# UChicago Medicine's robots.txt disallows crawling the entire site -- both
+# are respected here by only linking out, never fetching their data.
 QUICK_LINK_EMPLOYERS = [
     {
         "name": "Northwestern Medicine",
         "url_template": "https://jobs.nm.org/search-jobs/{query}",
-    },
-    {
-        "name": "Rush University Medical Center",
-        "url_template": "https://rush.fxrecruiter.com/?q={query}",
     },
     {
         "name": "UChicago Medicine",
