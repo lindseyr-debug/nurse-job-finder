@@ -67,6 +67,10 @@ QUICK_LINK_EMPLOYERS = [
     },
 ]
 
+# Published GitHub Pages URL -- linked from text alerts so you can view the
+# full dashboard from your phone.
+DASHBOARD_URL = "https://lindseyr-debug.github.io/nurse-job-finder/"
+
 GENERAL_BOARDS = [
     {
         "name": "Indeed",
