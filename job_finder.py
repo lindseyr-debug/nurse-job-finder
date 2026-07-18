@@ -39,11 +39,13 @@ def dedupe_jobs(jobs):
 
 
 def filter_and_score_jobs(jobs):
-    """Keep only actual nursing roles, and score them by specialty relevance."""
+    """Keep only actual, entry-level nursing roles, scored by specialty relevance."""
     relevant = []
     for job in jobs:
         title_lower = job["title"].lower()
         if not any(term in title_lower for term in config.NURSING_TITLE_TERMS):
+            continue
+        if any(term in title_lower for term in config.EXPERIENCED_LEVEL_TERMS):
             continue
         job["relevance_score"] = sum(1 for term in config.SPECIALTY_TERMS if term in title_lower)
         relevant.append(job)

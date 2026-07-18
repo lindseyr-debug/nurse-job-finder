@@ -23,6 +23,15 @@ SPECIALTY_TERMS = [
     "cardiology", "telemetry", "new grad", "residency", "graduate nurse",
 ]
 
+# Many hospitals (Rush included) use a clinical ladder: RN 1 / new grad,
+# RN 2+ requires prior experience. Exclude titles indicating an experience
+# level above entry, since Lindsey is a new grad.
+EXPERIENCED_LEVEL_TERMS = [
+    "registered nurse 2", "registered nurse 3", "registered nurse ii", "registered nurse iii",
+    "rn 2", "rn 3", "rn2", "rn3", "rn ii", "rn iii",
+    "experienced",
+]
+
 # Hospitals with a working Workday JSON search API -> fully automated results.
 WORKDAY_EMPLOYERS = [
     {
