@@ -13,7 +13,7 @@ from pathlib import Path
 
 import config
 import notifier
-from sources import quicklinks, rush, workday
+from sources import quicklinks, rush, uchicago, workday
 
 PROJECT_DIR = Path(__file__).parent
 DATA_DIR = PROJECT_DIR / "data"
@@ -48,6 +48,10 @@ def filter_and_score_jobs(jobs):
     for job in jobs:
         title_lower = job["title"].lower()
         location_lower = job["location"].lower()
+        # Some employers (e.g. UChicago Medicine) name a suburb/satellite
+        # location only in the title, not the location field -- so the
+        # exclusion check looks at both combined.
+        combined_lower = f"{title_lower} {location_lower}"
 
         if not any(term in title_lower for term in config.NURSING_TITLE_TERMS):
             continue
@@ -60,7 +64,7 @@ def filter_and_score_jobs(jobs):
         )
         if not is_chicago:
             continue
-        if any(term in location_lower for term in config.EXCLUDED_LOCATIONS):
+        if any(term in combined_lower for term in config.EXCLUDED_LOCATIONS):
             continue
 
         job["relevance_score"] = sum(1 for term in config.SPECIALTY_TERMS if term in title_lower)
@@ -245,6 +249,8 @@ def main():
 
     print("  Fetching Rush University Medical Center sitemap...")
     jobs += rush.fetch_jobs()
+
+    jobs += uchicago.fetch_all(config.SEARCH_KEYWORDS)
 
     jobs = dedupe_jobs(jobs)
     jobs = filter_and_score_jobs(jobs)
