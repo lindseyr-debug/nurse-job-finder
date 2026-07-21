@@ -16,17 +16,33 @@ SEARCH_KEYWORDS = [
 LOCATION_FILTERS = ["chicago"]
 
 # Never show postings at these locations, even if they otherwise match
-# (substring match against the location text, case-insensitive).
-EXCLUDED_LOCATIONS = ["oak park"]
+# (checked against title + location text combined, case-insensitive).
+# The UChicago Medicine entries are satellite/suburb clinics in their system
+# (Ingalls network south suburbs + NW Indiana) that get named in the job
+# title rather than a dedicated location field.
+EXCLUDED_LOCATIONS = [
+    "oak park",
+    "orland park", "harvey", "flossmoor", "matteson", "tinley park",
+    "crown point", "merrillville", "munster", "dyer", "schererville",
+]
 
-# Some employers (e.g. Advocate Health via Workday) list single-location jobs
-# as just "<Facility Name> - <Street Address>", with no city/state text at
+# Some employers list single-location jobs as just "<Facility Name> -
+# <Street Address>" or "<Org Name> | <Dept>", with no city/state text at
 # all -- so the literal "chicago" check in LOCATION_FILTERS misses real
-# Chicago facilities. These are the only Advocate Health facilities that are
-# actually within Chicago city limits (per advocatehealth.com); everything
-# else in their system (Lutheran General, Sherman, Christ Medical Center,
-# etc.) is a suburb and correctly stays excluded.
-CHICAGO_FACILITY_NAMES = ["illinois masonic", "advocate trinity"]
+# Chicago facilities. These are known facility/org names that are actually
+# within Chicago city limits: Advocate Illinois Masonic and Advocate
+# Trinity (per advocatehealth.com; the rest of Advocate's system, e.g.
+# Lutheran General, Sherman, Christ Medical Center, is suburban and
+# correctly stays excluded), and University of Chicago Medical Center's
+# main Hyde Park campus (their satellite/suburb clinics are excluded above
+# via EXCLUDED_LOCATIONS instead, since they're named in the title).
+# Deliberately NOT including "UCM Medical Group" -- that's their outpatient
+# clinic network spread across many suburbs with no city given, so it's
+# excluded by default rather than risk showing a suburb as a false match.
+CHICAGO_FACILITY_NAMES = [
+    "illinois masonic", "advocate trinity",
+    "university of chicago medical center", "uchicago medicine",
+]
 
 # A job title must contain at least one of these to be considered a nursing role at all.
 NURSING_TITLE_TERMS = ["nurse", " rn ", "rn,", "rn-", "rn(", "(rn)"]
@@ -62,17 +78,13 @@ WORKDAY_EMPLOYERS = [
 PEDS_EXCLUDE_TERMS = ["pediatric", "peds", "picu", "nicu", "children's", "neonatal"]
 
 # Hospitals/boards without a scrapable API -> generate direct search links instead.
-# Northwestern Medicine's robots.txt disallows crawling /search-jobs/, and
-# UChicago Medicine's robots.txt disallows crawling the entire site -- both
-# are respected here by only linking out, never fetching their data.
+# Northwestern Medicine's robots.txt disallows crawling /search-jobs/.
+# UChicago Medicine moved off this list -- their real application system
+# (Oracle Cloud, see sources/uchicago.py) has no robots.txt restriction.
 QUICK_LINK_EMPLOYERS = [
     {
         "name": "Northwestern Medicine",
         "url_template": "https://jobs.nm.org/search-jobs/{query}",
-    },
-    {
-        "name": "UChicago Medicine",
-        "url_template": "https://careers-ucm.icims.com/jobs/search?ss=1&searchKeyword={query}",
     },
     {
         "name": "UI Health",
